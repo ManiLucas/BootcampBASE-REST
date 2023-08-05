@@ -5,7 +5,9 @@ import com.bancobase.bootcamp.exceptions.ServiceProviderException;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.stereotype.Service;
 
+@Service
 public class APIExchangeRateClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -36,7 +38,27 @@ public class APIExchangeRateClient {
     }
 
     public SymbolsNameResponse getSymbolsName() {
-        // TODO: Implementa tu código aquí :D
-        return new SymbolsNameResponse();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://api.exchangerate.host/symbols")
+                .queryParam("base", "MXN")
+                .toUriString();
+
+        HttpEntity<String> headersAndBody = new HttpEntity<>(headers);
+
+        ResponseEntity<SymbolsNameResponse> responseEntity = this.restTemplate
+                .exchange(url, HttpMethod.GET, headersAndBody, SymbolsNameResponse.class);
+
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                return responseEntity.getBody();
+        }
+
+        throw ServiceProviderException
+                .builder()
+                .message("Oh no! An error occurred while connecting to our exchange rate provider.")
+                .build();
     }
 }
